@@ -6,3 +6,7 @@
 /.cproject
 /.project
 /.pydevproject
+
+# NEW #
+.*~
+.csv
