@@ -42,8 +42,8 @@ public:
 		// Constructs an importer to read the specified system's network.
 		CsvImporter(const std::string& filename,
 								const double analysisPeriod):
-				vertexFile(filename + "/vertices.csv"),
-				edgeFile(filename + "/edges.csv"),
+				vertexReader(filename + "/vertices.csv"),
+				edgeReader(filename + "/edges.csv"),
 				analysisPeriod(analysisPeriod),
 				nextVertexId(0)
 		{
@@ -65,8 +65,8 @@ public:
 				// used to eliminate the unused paramter warning
 				std::string dummy_string = dummy_filename;
 				dummy_string = "vert_id";
-				vertexFile.read_header(io::ignore_extra_column, dummy_string, "xcoord", "ycoord");
-				edgeFile.read_header(
+				vertexReader.read_header(io::ignore_extra_column, dummy_string, "xcoord", "ycoord");
+				edgeReader.read_header(
 						io::ignore_extra_column, "edge_tail", "edge_head", "length", "capacity", "speed");    
 		}
 
@@ -84,7 +84,7 @@ public:
 		bool nextVertex() {
 				double x,y;
 	  
-				if (!vertexFile.read_row(currentVertex.id, x, y))
+				if (!vertexReader.read_row(currentVertex.id, x, y))
 						return false;
 				
 				assert(origToNewIds.find(currentVertex.id) == origToNewIds.end());
@@ -103,20 +103,21 @@ public:
 		bool nextEdge() {
 				char *lengthField, *speedField;
       
-				if (!edgeFile.read_row(currentEdge.edgeTail, currentEdge.edgeHead,
+				if (!edgeReader.read_row(currentEdge.tail, currentEdge.head,
 															 lengthField, currentEdge.capacity, speedField))
 						return false;
 
-				      
+				std::cout << currentEdge.tail << " | " << currentEdge.head << " | " << lengthField << " | " << currentEdge.capacity << " | " << speedField << std::endl;
+								      
 				assert(currentEdge.capacity >= 0);
 				
 				currentEdge.freeFlowSpeed = lexicalCast<int>(speedField);	  
 				assert(currentEdge.freeFlowSpeed >= 0);
 	
-				assert(origToNewIds.find(currentEdge.edgeTail) != origToNewIds.end());
-				assert(origToNewIds.find(currentEdge.edgeHead) != origToNewIds.end());
-				currentEdge.edgeTail = origToNewIds.at(currentEdge.edgeTail);
-				currentEdge.edgeHead = origToNewIds.at(currentEdge.edgeHead);
+				assert(origToNewIds.find(currentEdge.tail) != origToNewIds.end());
+				assert(origToNewIds.find(currentEdge.head) != origToNewIds.end());
+				currentEdge.tail = origToNewIds.at(currentEdge.tail);
+				currentEdge.head = origToNewIds.at(currentEdge.head);
 
 				currentEdge.length = std::round(lexicalCast<double>(lengthField));
 				assert(currentEdge.length >= 0);
@@ -157,8 +158,8 @@ private:
 
 		// An edge record in Csv  file format.
 		struct EdgeRecord {
-				int edgeTail;
-				int edgeHead;
+				int tail;
+				int head;
 				int length;
 				int capacity;
 				int freeFlowSpeed;
@@ -166,8 +167,8 @@ private:
 
 		using IdMap = std::unordered_map<int, int>;
 
-		CsvDialect<3> vertexFile;          // The CSV file containing the vertex records.
-		CsvDialect<5> edgeFile;            // The CSV file containing the edge records.
+		CsvDialect<3> vertexReader;          // The CSV file containing the vertex records.
+		CsvDialect<5> edgeReader;            // The CSV file containing the edge records.
 		const int analysisPeriod;          // The analysis period in hours (capacity is in vehicles/AP).
 
 		IdMap origToNewIds; // A map from original vertex IDs to new sequential IDs.

@@ -125,7 +125,7 @@ inline GraphT importGraph(const CommandLineParser& clp) {
 			throw std::invalid_argument(what);
 		}
 		return GraphT(infile, VisumImporter(infile, sys, crs, precision, period));
-	} else if (fmt == "csv") {
+	} else if (format == "csv") {
 		const int ap = clp.getValue<int>("ap", 24);
 		if (ap <= 0) {
 			const auto what = "analysis period not strictly positive -- '" + std::to_string(ap) + "'";

@@ -99,7 +99,7 @@ public:
 	// Constructs a graph from the specified vertex and edge arrays. The constructor enables the
 	// internal data structures of the graph to be built externally.
 	Graph(
-		AlignedVector<OutEdgeRange>&& outEdges, AlignedVector<int32_t>&& edgeHeads, int edgeCount,
+		AlignedVector<OutEdgeRange>&& outEdges, AlignedVector<int32_t>&& edgeHeads,  int edgeCount,
 		AlignedVector<typename VertexAttributes::Type>&& ...vertexAttrs,
 		AlignedVector<typename EdgeAttributes::Type>&& ...edgeAttrs)
 		: outEdges(std::move(outEdges)), edgeHeads(std::move(edgeHeads)),			edgeTails(std::move(edgeTails)), edgeCount(edgeCount) {
@@ -199,13 +199,13 @@ public:
 	}
 
 	// Returns the head vertex of edge e.
-	const int& edgeHead(const int e) const {
+	int edgeHead(const int e) const {
 		assert(e >= 0); assert(e < edgeHeads.size()); assert(isValidEdge(e));
 		return edgeHeads[e];
 	}
 
 	// Returns the tail vertex of edge e.
-	int edgeTail(const int e) const {
+	int edgeTail_z(const int e) const {
 		assert(e >= 0); assert(e < edgeTails.size()); assert(isValidEdge(e));
 		return edgeTails[e];
 	}
@@ -752,6 +752,8 @@ public:
 		bio::read(in, edgeHeads);
 		bio::read(in, edgeTails);
 
+		std::cout << edgeHeads.size() << " | " << edgeTails.size() << std::endl;
+
 		// Fill the values of the vertex attributes.
 		int numVertexAttrs;
 		bio::read(in, numVertexAttrs);
@@ -777,6 +779,9 @@ public:
 			int size;
 			bio::read(in, name);
 			bio::read(in, size);
+
+			std::cout << "name: " << name << " | size: " << size << std::endl;
+			
 			if (hasAttribute(name))
 				// Read the attribute's values into the corresponding edge array.
 				RUN_IF(EdgeAttributes::NAME == name, bio::read(in, EdgeAttributes::values));
@@ -854,6 +859,8 @@ public:
 			assert(edgeHeads[e] == INVALID_EDGE);
 
 		assert(edgeCount == numEdges);
+		assert(edgeTails.size() == edgeHeads.size());
+		
 		return true;
 	}
 
