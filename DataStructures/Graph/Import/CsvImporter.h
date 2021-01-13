@@ -107,8 +107,6 @@ public:
 															 lengthField, currentEdge.capacity, speedField))
 						return false;
 
-				std::cout << currentEdge.tail << " | " << currentEdge.head << " | " << lengthField << " | " << currentEdge.capacity << " | " << speedField << std::endl;
-								      
 				assert(currentEdge.capacity >= 0);
 				
 				currentEdge.freeFlowSpeed = lexicalCast<int>(speedField);	  

@@ -99,7 +99,7 @@ public:
 	// Constructs a graph from the specified vertex and edge arrays. The constructor enables the
 	// internal data structures of the graph to be built externally.
 	Graph(
-		AlignedVector<OutEdgeRange>&& outEdges, AlignedVector<int32_t>&& edgeHeads,  int edgeCount,
+		AlignedVector<OutEdgeRange>&& outEdges, AlignedVector<int32_t>&& edgeHeads,  AlignedVector<int32_t>&& edgeTails, int edgeCount,
 		AlignedVector<typename VertexAttributes::Type>&& ...vertexAttrs,
 		AlignedVector<typename EdgeAttributes::Type>&& ...edgeAttrs)
 		: outEdges(std::move(outEdges)), edgeHeads(std::move(edgeHeads)),			edgeTails(std::move(edgeTails)), edgeCount(edgeCount) {
@@ -687,6 +687,7 @@ public:
 			assert(im.edgeHead() >= 0); assert(im.edgeHead() < numVertices());
 			edgeTails.push_back(im.edgeTail());
 			edgeHeads.push_back(im.edgeHead());
+			
 			RUN_FORALL(EdgeAttributes::values.push_back(im.template getValue<EdgeAttributes>()));
 			outEdges[im.edgeTail()].first()++;
 			edgesSorted &= prevTailId <= im.edgeTail();
@@ -753,7 +754,7 @@ public:
 		bio::read(in, edgeTails);
 
 		std::cout << edgeHeads.size() << " | " << edgeTails.size() << std::endl;
-
+		
 		// Fill the values of the vertex attributes.
 		int numVertexAttrs;
 		bio::read(in, numVertexAttrs);
@@ -779,9 +780,6 @@ public:
 			int size;
 			bio::read(in, name);
 			bio::read(in, size);
-
-			std::cout << "name: " << name << " | size: " << size << std::endl;
-			
 			if (hasAttribute(name))
 				// Read the attribute's values into the corresponding edge array.
 				RUN_IF(EdgeAttributes::NAME == name, bio::read(in, EdgeAttributes::values));
@@ -791,7 +789,11 @@ public:
 		}
 		RUN_FORALL(EdgeAttributes::values.resize(edgeCount, EdgeAttributes::defaultValue()));
 
+		std::cout << edgeHeads.size() << " | " << edgeTails.size() << std::endl;
+
 		assert(validate());
+
+		std::cout << edgeHeads.size() << " | " << edgeTails.size() << std::endl;
 	}
 
 	// Writes a graph to a binary file. The second parameter is a list of attributes that should not
@@ -836,6 +838,7 @@ public:
 	// Checks if the graph is consistent.
 	bool validate() const {
 		boost::dynamic_bitset<> visited(edgeHeads.size());
+		std::cout << edgeHeads.size() << " | HERE | " << edgeTails.size() << std::endl;
 		int numEdges = 0;
 		for (int u = 0; u != numVertices(); ++u) {
 			// Assert that a valid range of edges is associated with each vertex.
@@ -859,8 +862,6 @@ public:
 			assert(edgeHeads[e] == INVALID_EDGE);
 
 		assert(edgeCount == numEdges);
-		assert(edgeTails.size() == edgeHeads.size());
-		
 		return true;
 	}
 
